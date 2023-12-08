@@ -1,78 +1,26 @@
 <?php
 
-namespace App\Repositories\Institute;
+namespace App\Repositories;
+
 
 use App\Models\Institute;
+use App\Models\InstituteUser;
 use App\Models\User;
-use App\Repositories\BaseRepositoryInterface;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\BaseRepositoryInterface;
 
 class AuthenticationRepository implements BaseRepositoryInterface
 {
     public function all()
     {
-    
-    
-    }
-
-    public function createUser($request, $imagePath, $galleryPath, $logoPath)
-    {
-
-        // $platform = "institute";
-        $user = User::create([
-            'name' => $request['name'],
-            'email' => $request['email'],
-            'phone' => $request['phone'],
-            'password' => Hash::make($request['password']), //admin@123
-            // 'profile_image' => $request['profile_image'],
-            'user_type' => 'institute',
-            'is_active' => 'yes'
-        ]);
-        DB::commit();
-
-        $institute = Institute::create([
-            'name' => $request['name'],
-            'email' => $request['email'],
-            'logo' => $logoPath,
-            'type' => 'institute',
-            'image' => json_encode($imagePath),
-            'gallery' => json_encode($galleryPath),
-            'description' => $request['description'],
-            'registered_date' => $request['registered_date'],
-            'address_line_1' => $request['address_line_1'],
-            'address_line_2' => $request['address_line_2'],
-            'city' => $request['city'],
-            'state' => $request['state'],
-            'pincode' => $request['pincode'],
-            'phone' => $request['phone'],
-            'alternate_number' => $request['alternate_number'] ,
-            'official_website' => $request['official_website'] ?? null,
-            'facebook' => $request['facebook'] ?? null,
-            'linkedin' => $request['linkedin'] ?? null,
-            'instagram' => $request['instagram'] ?? null,
-            'twitter' => $request['twitter'] ?? null,
-            'pinterest' => $request['pinterest'] ?? null,
-            'is_active' => 'yes',
-        ]);
-        
-
-
-
-    
-        DB::commit();
-        return ["status" => true, "data" => 'institute user created successfully'];
-    }
-
-
-
-
+    } 
     public function getUser($user){
-        return User::where('is_deleted','no')->where('user_type','Institute')->where('is_active','yes')->where('email',$user)->orWhere('phone',$user)->first();
+        return User::where('is_deleted','no')->where('user_type','institute')->where('is_active','no')->where('email',$user)->orWhere('phone',$user)->first();
     }
 
 
@@ -83,7 +31,7 @@ class AuthenticationRepository implements BaseRepositoryInterface
                 Log::warning($user);
                 $usertype = $user->user_type;
 
-                if($usertype === 'Institute'){               
+                if($usertype === 'institute'){               
                
                 $two_step_enabled = $user->is_two_step_enabled;
                 Log::warning($two_step_enabled);
@@ -266,5 +214,8 @@ class AuthenticationRepository implements BaseRepositoryInterface
             return response()->json(['message' => $e->getMessage()], 401);
         }
     }
+    
+
+     
 
 }
