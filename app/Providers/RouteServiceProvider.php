@@ -24,17 +24,58 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-        });
+        $this->configureRateLimiting();
 
         $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
+            $this->configureApiRoutes();
+            $this->configureWebRoutes();
+        });
 
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
+    }
+
+    protected function configureRateLimiting()
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return $request->user()
+            ? Limit::perMinute(60)->by($request->user()->id)
+            : Limit::perMinute(60)->by($request->ip());
         });
     }
+
+    protected function configureApiRoutes()
+    {
+        Route::middleware('api')
+            ->prefix('api')
+            ->group(function () {
+                $this->loadRoutesFrom(base_path('routes/api.php'));
+
+                // Additional API route groups
+                $this->configureApiRouteGroups(['Teacher/api','Student/api']);
+            });
+    }
+
+    protected function configureApiRouteGroups(array $groups)
+
+    {
+        foreach ($groups as $group) {
+            Route::middleware('api')
+                ->prefix("{$group}")
+                ->group(function () use ($group) {
+                    $this->loadRoutesFrom(base_path("routes/{$group}.php"));
+                });
+        }
+    }
+
+    protected function configureWebRoutes()
+    {
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(function () {
+                $this->loadRoutesFrom(base_path('routes/web.php'));
+            });
+    }
+
+
+    
 }
+
